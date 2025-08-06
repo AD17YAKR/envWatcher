@@ -1,0 +1,24 @@
+*.vsix
+
+# Node modules
+node_modules/
+
+# VS Code settings
+.vscode/
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+EOF
