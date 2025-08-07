@@ -1,63 +1,111 @@
 # Env Watcher
 
-A VS Code extension that automatically restarts your development server when `.env` files change.
+A smart VS Code extension that automatically restarts your development server when configuration files change. Perfect for any development environment where config changes require server restarts.
 
-## Features
+## ✨ Key Features
 
-- 🔍 Watches for changes in `.env` files in your workspace
-- 🔄 Automatically restarts development servers when environment variables change
-- ⚡ Lightweight and fast file watching
-- 🎯 Configurable file patterns and restart commands
+- 🔍 **Universal File Watching** - Watch any configuration file (`.env`, `config.py`, `settings.json`, etc.)
+- 🧠 **Smart Server Detection** - Only restarts when a server is actually running
+- 🔄 **Terminal Reuse** - Restarts in the same terminal where your server is running
+- ⚡ **Lightning Fast** - Lightweight file watching with configurable debouncing
+- 🎯 **Zero Duplicates** - Prevents multiple server instances from running
 
-## Installation
+## 🚀 Perfect For
 
-1. Install from VS Code Marketplace (coming soon)
-2. Or install from VSIX file
+- **Node.js** projects with `.env`, `config.json` files
+- **Python** applications with `config.py`, `settings.py` files
+- **Any framework** that requires server restart on config changes
+- **Multiple file types** - works with any file extension you specify
 
-## Usage
+## 📦 Installation
 
-1. Open a workspace containing `.env` files
-2. The extension automatically starts watching for changes
-3. When a `.env` file is modified, configured commands will restart automatically
+Install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=DebugSoul.env-watcher)
 
-## Configuration
+## 🔧 Configuration
 
-Add these settings to your VS Code settings:
+Add these settings to your workspace `.vscode/settings.json`:
 
 ```json
 {
-  "envWatcher.watchPatterns": [".env", ".env.*"],
+  "envWatcher.enabled": true,
+  "envWatcher.watchFile": ".env",
   "envWatcher.restartCommand": "npm run dev",
-  "envWatcher.enabled": true
+  "envWatcher.autoRestart": true,
+  "envWatcher.debounceTime": 500
 }
 ```
 
-## Commands
+### Configuration Examples
 
-- `Env Watcher: Enable` - Enable environment file watching
-- `Env Watcher: Disable` - Disable environment file watching
-- `Env Watcher: Restart Server` - Manually restart the development server
+**Node.js with environment files:**
 
-## Requirements
+```json
+{
+  "envWatcher.watchFile": ".env*",
+  "envWatcher.restartCommand": "npm run dev"
+}
+```
+
+**Python Flask/Django:**
+
+```json
+{
+  "envWatcher.watchFile": "config.py",
+  "envWatcher.restartCommand": "python app.py"
+}
+```
+
+**Multiple config files:**
+
+```json
+{
+  "envWatcher.watchFile": "{.env,config.json,settings.py}",
+  "envWatcher.restartCommand": "yarn dev"
+}
+```
+
+## 🎮 Commands
+
+- `Env Watcher: Enable` - Start watching configuration files
+- `Env Watcher: Disable` - Stop watching files
+- `Env Watcher: Restart Server` - Manually restart your development server
+
+## 🔥 How It Works
+
+1. **Detects Changes** - Monitors your specified config files for modifications
+2. **Checks Server Status** - Only acts if a development server is actually running
+3. **Smart Restart** - Stops the current process and restarts in the same terminal
+4. **No Duplicates** - Prevents multiple server instances from running simultaneously
+
+## ⚙️ Settings Reference
+
+| Setting                     | Type    | Default         | Description                                    |
+| --------------------------- | ------- | --------------- | ---------------------------------------------- |
+| `envWatcher.enabled`        | boolean | `true`          | Enable/disable file watching                   |
+| `envWatcher.watchFile`      | string  | `".env"`        | File pattern to watch (supports glob patterns) |
+| `envWatcher.restartCommand` | string  | `"npm run dev"` | Command to restart your server                 |
+| `envWatcher.autoRestart`    | boolean | `true`          | Restart automatically without confirmation     |
+| `envWatcher.debounceTime`   | number  | `500`           | Delay in milliseconds to prevent restart spam  |
+
+## 🔧 Requirements
 
 - VS Code 1.74.0 or higher
-- Node.js development environment
+- Any development environment (Node.js, Python, etc.)
 
-## Release Notes
+## 📝 Release Notes
 
-### 0.0.1
+### 0.0.3
 
-- Initial release
-- Basic .env file watching functionality
-- Configurable restart commands
+- ✅ Smart server detection - only restarts when server is running
+- ✅ Terminal reuse - restarts in existing terminal
+- ✅ Universal file support - works with any configuration file
+- ✅ Duplicate prevention - no more multiple server instances
+- ✅ Improved reliability and performance
 
-## Contributing
+## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+Found a bug or have a feature request? [Open an issue](https://github.com/AD17YAKR/envWatcher/issues) on GitHub.
 
-## License
+## 📄 License
 
-MIT
+MIT - see [LICENSE.md](LICENSE.md) for details

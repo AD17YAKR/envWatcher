@@ -1,8 +1,8 @@
 {
   "name": "env-watcher",
   "displayName": "Env Watcher",
-  "description": "Automatically restart your development server when .env files change. Smart, configurable, and lightweight file watching for Node.js, Python, and any dev environment.",
-  "version": "0.0.1",
+  "description": "Smart VS Code extension that automatically restarts your development server when configuration files change. Works with .env, config.py, settings.json, and any config file. Features intelligent server detection and terminal reuse.",
+  "version": "0.1.0",
   "publisher": "DebugSoul",
   "icon": "logo.png",
   "engines": {
@@ -10,9 +10,12 @@
   },
   "categories": [
     "Other",
-    "Extension Packs"
+    "Debuggers",
+    "Testing"
   ],
   "keywords": [
+    "config",
+    "configuration",
     "env",
     "environment",
     "dotenv",
@@ -22,12 +25,15 @@
     "nodejs",
     "python",
     "flask",
+    "django",
     "express",
     "file watcher",
     "auto restart",
     "dev server",
     "productivity",
-    "workflow"
+    "workflow",
+    "smart detection",
+    "terminal reuse"
   ],
   "repository": {
     "type": "git",
@@ -65,12 +71,12 @@
         "envWatcher.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable/disable environment file watching"
+          "description": "Enable/disable configuration file watching"
         },
         "envWatcher.watchFile": {
           "type": "string",
           "default": ".env",
-          "description": "Environment file to watch for changes"
+          "description": "Configuration file pattern to watch for changes (supports glob patterns)"
         },
         "envWatcher.restartCommand": {
           "type": "string",
