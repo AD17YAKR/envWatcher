@@ -9,6 +9,7 @@ A smart VS Code extension that automatically restarts your development server wh
 - 🔄 **Terminal Reuse** - Restarts in the same terminal where your server is running
 - ⚡ **Lightning Fast** - Lightweight file watching with configurable debouncing
 - 🎯 **Zero Duplicates** - Prevents multiple server instances from running
+- 💡 **Always-On .env Reminders** - Gentle notifications for .env changes even when disabled
 
 ## 🚀 Perfect For
 
@@ -76,6 +77,7 @@ Add these settings to your workspace `.vscode/settings.json`:
 2. **Checks Server Status** - Only acts if a development server is actually running
 3. **Smart Restart** - Stops the current process and restarts in the same terminal
 4. **No Duplicates** - Prevents multiple server instances from running simultaneously
+5. **Safety Net** - Always shows lightweight reminders for .env changes, even when disabled
 
 ## ⚙️ Settings Reference
 
@@ -93,6 +95,13 @@ Add these settings to your workspace `.vscode/settings.json`:
 - Any development environment (Node.js, Python, etc.)
 
 ## 📝 Release Notes
+
+### 0.1.1
+
+- ✅ **Modular Architecture** - Cleaner, more maintainable codebase
+- ✅ **Always-On .env Reminders** - Lightweight notifications even when extension is disabled
+- ✅ **Enhanced User Experience** - Better notification system with reminder scheduling
+- ✅ **Improved Reliability** - Better error handling and state management
 
 ### 0.0.3
 

@@ -2,7 +2,7 @@
   "name": "env-watcher",
   "displayName": "Env Watcher",
   "description": "Smart VS Code extension that automatically restarts your development server when configuration files change. Works with .env, config.py, settings.json, and any config file. Features intelligent server detection and terminal reuse.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "DebugSoul",
   "icon": "logo.png",
   "engines": {

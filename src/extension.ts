@@ -1,20 +1,26 @@
 import * as vscode from "vscode";
-import * as path from "path";
+import { FileWatcher } from "./fileWatcher";
+import { TerminalManager } from "./terminalManager";
+import { NotificationManager } from "./notificationManager";
 
 class EnvWatcher {
-  private watcher: vscode.FileSystemWatcher | undefined;
-  private debounceTimer: NodeJS.Timeout | undefined;
-  private terminal: vscode.Terminal | undefined;
+  private configWatcher: FileWatcher;
+  private envWatcher: FileWatcher;
+  private terminalManager: TerminalManager;
+  private notificationManager: NotificationManager;
   private enabled: boolean = true;
-  private serverTerminal: vscode.Terminal | undefined;
-  private isServerRunning: boolean = false;
 
   constructor(private context: vscode.ExtensionContext) {
+    this.terminalManager = new TerminalManager(context);
+    this.notificationManager = new NotificationManager();
+    
+    this.configWatcher = new FileWatcher(context, () => this.handleConfigChange());
+    this.envWatcher = new FileWatcher(context, () => this.handleEnvChange());
+    
     this.loadConfig();
     this.startWatching();
-    this.monitorTerminals();
+    this.startEnvWatching();
 
-    // Listen for configuration changes
     vscode.workspace.onDidChangeConfiguration(
       (e) => {
         if (e.affectsConfiguration("envWatcher")) {
@@ -28,21 +34,7 @@ class EnvWatcher {
     );
   }
 
-  private monitorTerminals() {
-    vscode.window.onDidCloseTerminal(
-      (terminal) => {
-        if (terminal === this.serverTerminal) {
-          this.isServerRunning = false;
-          this.serverTerminal = undefined;
-        }
-      },
-      null,
-      this.context.subscriptions
-    );
 
-    // Assume server might be running if terminals exist
-    this.isServerRunning = vscode.window.terminals.length > 0;
-  }
 
   private loadConfig() {
     const config = vscode.workspace.getConfiguration("envWatcher");
@@ -50,92 +42,44 @@ class EnvWatcher {
   }
 
   private startWatching() {
-    if (!this.enabled || !vscode.workspace.workspaceFolders) return;
-
+    if (!this.enabled) return;
+    
     const config = vscode.workspace.getConfiguration("envWatcher");
     const watchFile = config.get("watchFile", ".env");
-
-    const pattern = new vscode.RelativePattern(
-      vscode.workspace.workspaceFolders[0],
-      watchFile
-    );
-
-    this.watcher = vscode.workspace.createFileSystemWatcher(pattern);
-
-    this.watcher.onDidChange(() => this.handleFileChange());
-    this.watcher.onDidCreate(() => this.handleFileChange());
-
-    this.context.subscriptions.push(this.watcher);
+    
+    this.configWatcher.start(watchFile);
   }
 
-  private handleFileChange() {
+  private startEnvWatching() {
+    this.envWatcher.start("*.env*");
+  }
+
+  private handleConfigChange() {
     if (!this.enabled) return;
+    this.restartServer();
+  }
 
-    const config = vscode.workspace.getConfiguration("envWatcher");
-    const debounceTime = config.get("debounceTime", 500);
-
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
+  private handleEnvChange() {
+    if (this.enabled) {
+      this.notificationManager.showEnvChangeReminder(() => {
+        this.terminalManager.trackActiveTerminal();
+        this.restartServer();
+      });
+    } else {
+      this.notificationManager.showLightweightReminder();
     }
-
-    this.debounceTimer = setTimeout(() => {
-      this.restartServer();
-    }, debounceTime);
   }
 
   private async restartServer() {
-    if (!this.isServerRunning) return;
+    if (!this.terminalManager.serverRunning) return;
 
     const config = vscode.workspace.getConfiguration("envWatcher");
     const restartCommand = config.get("restartCommand", "npm run dev");
 
-    if (!(await this.shouldRestart(config))) return;
+    if (!(await this.notificationManager.shouldRestart(config))) return;
 
-    await this.executeRestart(restartCommand);
-    vscode.window.showInformationMessage("Development server restarted");
-  }
-
-  private async shouldRestart(
-    config: vscode.WorkspaceConfiguration
-  ): Promise<boolean> {
-    const autoRestart = config.get("autoRestart", true);
-    if (autoRestart) return true;
-
-    const choice = await vscode.window.showInformationMessage(
-      "Environment file changed. Restart development server?",
-      "Yes",
-      "No"
-    );
-    return choice === "Yes";
-  }
-
-  private async executeRestart(restartCommand: string) {
-    const terminal = this.getOrCreateTerminal();
-
-    terminal.sendText("\u0003"); // Stop current process
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    terminal.sendText(restartCommand);
-    terminal.show();
-
-    this.isServerRunning = true;
-  }
-
-  private getOrCreateTerminal(): vscode.Terminal {
-    // Use tracked terminal if still active
-    if (this.serverTerminal && !this.serverTerminal.exitStatus) {
-      return this.serverTerminal;
-    }
-
-    // Use active terminal if available
-    const activeTerminal = vscode.window.activeTerminal;
-    if (activeTerminal && !activeTerminal.exitStatus) {
-      this.serverTerminal = activeTerminal;
-      return activeTerminal;
-    }
-
-    // Create new terminal
-    this.serverTerminal = vscode.window.createTerminal("EnvWatcher Server");
-    return this.serverTerminal;
+    await this.terminalManager.executeRestart(restartCommand);
+    this.notificationManager.showRestartSuccess();
   }
 
   public enable() {
@@ -144,7 +88,7 @@ class EnvWatcher {
     config.update("enabled", true, vscode.ConfigurationTarget.Workspace);
     this.dispose();
     this.startWatching();
-    vscode.window.showInformationMessage("Env Watcher enabled");
+    this.notificationManager.showEnabled();
   }
 
   public disable() {
@@ -152,29 +96,17 @@ class EnvWatcher {
     const config = vscode.workspace.getConfiguration("envWatcher");
     config.update("enabled", false, vscode.ConfigurationTarget.Workspace);
     this.dispose();
-    vscode.window.showInformationMessage("Env Watcher disabled");
+    this.notificationManager.showDisabled();
   }
 
   public async manualRestart() {
-    this.trackActiveTerminal();
+    this.terminalManager.trackActiveTerminal();
     await this.restartServer();
   }
 
-  private trackActiveTerminal() {
-    if (vscode.window.activeTerminal) {
-      this.serverTerminal = vscode.window.activeTerminal;
-      this.isServerRunning = true;
-    }
-  }
-
   public dispose() {
-    if (this.watcher) {
-      this.watcher.dispose();
-      this.watcher = undefined;
-    }
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-    }
+    this.configWatcher.dispose();
+    this.envWatcher.dispose();
   }
 }
 
